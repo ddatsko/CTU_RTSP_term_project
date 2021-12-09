@@ -7,6 +7,7 @@
 #include <iv.h>
 #include <xlnx_zynq7k.h>
 #include <stdbool.h>
+#include "../shm.h"
 
 volatile unsigned irq_count;
 
@@ -50,16 +51,20 @@ void irc_cleanup(void)
  */
 void motor(void)
 {
-        TASK_ID st;
 
         irc_init();
         
         // Motor testing
         PWM_PERIOD_REGISTER = 5000;
+        PWM_DUTY_CR = ((1 << DUTY_DIR_R) | (200 << DUTY_CYCLE));
+        
+        MOTOR_CR = (1 << MOTOR_CR_PWM_ENABLE);
+        
         
 
         while (1) {
             printf("IRQ count: %u\n", irq_count);
+            int i;
             sleep(1);
         }
 

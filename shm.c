@@ -1,7 +1,13 @@
 #include "shm.h"
 
 
-int init_shm(int is_srv) {
+/*!
+ * \brief Initialize the shared memory
+ * \note Function using exit if the memory was not intiialized successfully
+ * 
+ * @return Pointer to the shared struct, NULL pointer in case of failure
+ */
+motor_driver_shared_memory_t* init_shm() {
     int fd;
 
     sem_shm_lock = semOpen("/complock", SEM_TYPE_MUTEX, SEM_EMPTY, SEM_Q_FIFO, OM_CREATE, NULL);
@@ -26,38 +32,33 @@ int init_shm(int is_srv) {
 		}
 		is_init = 1;
     }
-    if (ftruncate (fd, sizeof(struct company_registry)) == -1) {
+    if (ftruncate (fd, sizeof(motor_driver_shared_memory_t)) == -1) {
 		perror("ftruncate");
 		semGive(sem_shm_lock);
 		exit (ERROR_FTRUNC);
 	}
     
     /* Map shared memory object in the process address space */
-    ptr = (struct company_registry *)mmap(0, sizeof(struct company_registry),
+    motor_driver_shared_memory_t* dest = (motor_driver_shared_memory_t *)mmap(0, sizeof(motor_driver_shared_memory_t),
                           	  	  	  	  	  PROT_READ | PROT_WRITE,
                           	  	  	  	  	  MAP_SHARED, fd, 0);
-    if (ptr == (struct company_registry *)MAP_FAILED) {
+    if (dest == (motor_driver_shared_memory_t *)MAP_FAILED) {
     	semGive(sem_shm_lock);
     	exit (ERROR_MAPPING);
     }
         
-    
     /* close the file descriptor; the mapping is not impacted by this */
     close (fd);
     
    
-    /* the fist company should zero the memory this way: */
+    /* the first to open the structure initializes it */
     if (!is_init) {
-    	memset(ptr, 0, sizeof(struct company_registry));
-    	for (int i = 0; i < 50; ++i) {
-    		(&ptr->companies[i])->is_empty = 1;
-    	}
-    	
+    	dest->irq_count = 0;
+    	dest->desired_position = 0;
+    	dest->position = 0;
+    	dest->pwm_duty = 0;    	
     }
     semGive(sem_shm_lock);
-    
-    if (is_srv) {
-    	
-    }
+
 	return 0;
 }
