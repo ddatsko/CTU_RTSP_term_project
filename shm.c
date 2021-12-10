@@ -3,8 +3,6 @@
 
 /*!
  * \brief Initialize the shared memory
- * \note Function using exit if the memory was not intiialized successfully
- * 
  * @return Pointer to the shared struct, NULL pointer in case of failure
  */
 motor_driver_shared_memory_t* init_shm() {
@@ -22,20 +20,20 @@ motor_driver_shared_memory_t* init_shm() {
     if (fd == -1){
     	if (errno != EEXIST) {
     		semGive(sem_shm_lock);
-    		exit(ERROR_OPEN_FILE);
+    		return NULL;
     	}
     	// Not first open
     	fd = shm_open("/counter", O_RDWR | O_CREAT, S_IRUSR|S_IWUSR);
 		if (fd == -1) {
 			semGive(sem_shm_lock);
-			exit(ERROR_OPEN_FILE);
+			return NULL;
 		}
 		is_init = 1;
     }
     if (ftruncate (fd, sizeof(motor_driver_shared_memory_t)) == -1) {
 		perror("ftruncate");
 		semGive(sem_shm_lock);
-		exit (ERROR_FTRUNC);
+		return NULL;
 	}
     
     /* Map shared memory object in the process address space */
@@ -44,7 +42,7 @@ motor_driver_shared_memory_t* init_shm() {
                           	  	  	  	  	  MAP_SHARED, fd, 0);
     if (dest == (motor_driver_shared_memory_t *)MAP_FAILED) {
     	semGive(sem_shm_lock);
-    	exit (ERROR_MAPPING);
+    	return NULL;
     }
         
     /* close the file descriptor; the mapping is not impacted by this */
@@ -60,5 +58,5 @@ motor_driver_shared_memory_t* init_shm() {
     }
     semGive(sem_shm_lock);
 
-	return 0;
+	return dest;
 }

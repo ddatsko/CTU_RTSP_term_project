@@ -18,8 +18,6 @@
 #define MAX_BUF 2048
 
 
-#define DEBUG_OUTPUT
-#undef DEBUG_OUTPUT
 
 
 #endif

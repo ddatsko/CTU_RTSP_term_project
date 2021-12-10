@@ -23,4 +23,6 @@ typedef struct {
 	int32_t pwm_duty;
 } motor_driver_shared_memory_t;
 
+motor_driver_shared_memory_t* init_shm();
+
 SEM_ID sem_shm_lock;

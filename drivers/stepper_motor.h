@@ -4,7 +4,7 @@
  
 #define REGISTER(base, offs) (*((volatile UINT32 *)((base) + (offs))))
 #define BIT(i) ((1) << (i))
-
+#define PWM_PERIOD 5000 // Corresponds to 20kHz fewquency
 
 // MOTOR macros
 // See section FPGA registers for more information.
@@ -68,6 +68,7 @@
 // Defining this as bit 0 to make writing here easier (using << DUTY_CYCLE)
 #define DUTY_CYCLE 0
 
+#define PWM_PERIO
 
 
 
